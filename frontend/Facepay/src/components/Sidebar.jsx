@@ -11,33 +11,61 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
+  const [user, setUser] = useState(null);
 
-  // Load saved image from localStorage on component mount
   useEffect(() => {
-    const storedImage = localStorage.getItem("profileImage");
-    if (storedImage) {
-      setProfileImage(storedImage);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      setProfileImage(parsedUser.profileImage || localStorage.getItem("profileImage"));
     }
   }, []);
 
-  // Handle new profile image upload
-  const handleImageUpload = async (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Image = reader.result;
-        setProfileImage(base64Image);
-        localStorage.setItem("profileImage", base64Image);
+    if (!file) return;
 
-        try {
-          await axios.put("/api/user/profile-image", { image: base64Image });
-        } catch (err) {
-          console.error("Error uploading image to server:", err.message);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const imageBase64 = reader.result;
+      setProfileImage(imageBase64);
+      localStorage.setItem("profileImage", imageBase64);
+
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        const email = storedUser?.email;
+        if (!email) {
+          console.error("User email not found in localStorage.");
+          return;
         }
-      };
-      reader.readAsDataURL(file);
-    }
+
+        const response = await axios.put("http://localhost:5000/api/auth/profile-image", {
+          image_url: imageBase64,
+          email,
+        });
+
+        const updatedImage = response?.data?.image_url;
+        if (updatedImage) {
+          setProfileImage(updatedImage);
+          const updatedUser = { ...storedUser, profileImage: updatedImage };
+          setUser(updatedUser);
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+        }
+
+        console.log("Profile image updated successfully.");
+      } catch (error) {
+        console.error("Error uploading image:", error.message);
+      }
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    // Optional: localStorage.removeItem("profileImage");
+    navigate("/");
   };
 
   return (
@@ -49,48 +77,48 @@ const Sidebar = () => {
         </button>
       </div>
 
-      {/* Sidebar Content */}
+      {/* Sidebar */}
       {isOpen && (
-        <div className="flex flex-col justify-between w-64 min-h-screen p-4 shadow-md bg-gradient-to-b from-blue-200 to-blue-50">
+        <div className="flex flex-col  w-64 min-h-screen p-4 shadow-md bg-gradient-to-b from-blue-200 to-blue-50">
           {/* Profile */}
-          <div>
-            <div className="relative flex flex-col items-center mb-6">
-              <div className="relative">
-                <img
-                  src={profileImage || "/default-avatar.png"}
-                  alt="Profile"
-                  className="object-cover w-24 h-24 border-2 border-blue-500 rounded-full"
+          <div className="relative flex flex-col items-center mb-6">
+            <div className="relative">
+              <img
+                src={profileImage || "/default-avatar.png"}
+                alt="Profile"
+                className="object-cover w-24 h-24 border-2 border-blue-500 rounded-full"
+              />
+              <label
+                htmlFor="profileUpload"
+                className="absolute bottom-0 right-0 p-1 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700"
+                title="Change Profile Picture"
+              >
+                <FontAwesomeIcon icon={faCamera} className="text-xs text-white" />
+                <input
+                  type="file"
+                  id="profileUpload"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
                 />
-                <label
-                  htmlFor="profileUpload"
-                  className="absolute bottom-0 right-0 p-1 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700"
-                  title="Change Profile Picture"
-                >
-                  <FontAwesomeIcon icon={faCamera} className="text-xs text-white" />
-                  <input
-                    type="file"
-                    id="profileUpload"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <h3 className="mt-2 text-lg font-semibold text-blue-700">Deepika Agrawal</h3>
+              </label>
             </div>
-
-            {/* Navigation Menu */}
-            <nav className="flex flex-col gap-4 font-medium text-gray-800">
-              <SidebarItem icon={faSearch} title="Search" />
-              <SidebarItem icon={faUser} title="User Details" onClick={() => navigate("/profile")} />
-              <SidebarItem icon={faBuildingColumns} title="Bank Details" />
-              <SidebarItem icon={faExchangeAlt} title="Transfer Options" />
-              <SidebarItem icon={faHistory} title="Transaction History" />
-              <div className="h-3"></div>
-              <SidebarItem icon={faSignOutAlt} title="Logout" />
-              <SidebarItem icon={faCog} title="Settings" />
-            </nav>
+            <h3 className="mt-2 text-lg font-semibold text-blue-700">
+              {user?.username || "User"}
+            </h3>
           </div>
+
+          {/* Menu */}
+          <nav className="flex flex-col gap-4 font-medium text-gray-800">
+            <SidebarItem icon={faSearch} title="Search" />
+            <SidebarItem icon={faUser} title="User Details" onClick={() => navigate("/profile")} />
+            <SidebarItem icon={faBuildingColumns} title="Bank Details" />
+            <SidebarItem icon={faExchangeAlt} title="Transfer Options" />
+            <SidebarItem icon={faHistory} title="Transaction History" />
+            <div className="h-3" />
+            <SidebarItem icon={faSignOutAlt} title="Logout" onClick={handleLogout} />
+            <SidebarItem icon={faCog} title="Settings" />
+          </nav>
         </div>
       )}
     </div>
