@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import loginImage from "../images/log.svg";
+import loginImage from "../images/log.svg";  // Adjust the path to your image if necessary
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
@@ -37,7 +37,14 @@ const Login = () => {
         "http://localhost:5000/api/auth/login",
         formData
       );
-      // alert(response.data.message);
+
+      const user = response.data.user;
+
+      // ✅ Store full user data (including profileImage) in localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", response.data.token);  // Store token for authentication
+
+      // ✅ Navigate to dashboard
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data.message || "Login failed");
@@ -125,5 +132,3 @@ const Login = () => {
 };
 
 export default Login;
-
-

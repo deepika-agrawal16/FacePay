@@ -26,7 +26,7 @@ const NavBar = () => {
             Home
           </a>
           <a href="#" className="font-semibold text-gray-600 hover:text-blue-600"
-          onClick={() => navigate("/dashboard")}>
+          onClick={() => navigate("/login")}>
             Products
           </a>
           <a href="#" className="font-semibold text-gray-600 hover:text-blue-600" 

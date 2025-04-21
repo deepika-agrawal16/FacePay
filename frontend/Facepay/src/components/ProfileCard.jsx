@@ -1,54 +1,77 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+// Dashboard.jsx
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const ProfileCard = () => {
+
+const Dashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [profileImage, setProfileImage] = useState("/default-avatar.png");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get("/api/user/me");
-        setUser(response.data);
-      } catch (error) {
-        console.error("Error fetching user:", error.message);
-      }
-    };
+    const storedUser = localStorage.getItem("user");
 
-    // Fetch user details from backend
-    fetchUser();
-
-    // Get profile image from localStorage if available
-    const storedImage = localStorage.getItem("profileImage");
-    if (storedImage) {
-      setProfileImage(storedImage);
+    if (!storedUser) {
+      navigate("/");
+    } else {
+      setUser(JSON.parse(storedUser));
     }
-  }, []);
+
+    setLoading(false);
+  }, [navigate]);
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen text-lg">
+        Fetching your profile...
+      </div>
+    );
+
+  const profileImageSrc =
+    user?.profileImage ||
+    localStorage.getItem("profileImage") ||
+    `https://ui-avatars.com/api/?name=${user?.username || "User"}&background=0D8ABC&color=fff`;
 
   return (
-    <div className="flex max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg shadow-lg">
-      <div className="flex-shrink-0 w-1/3">
-        <img
-          src={profileImage}
-          alt="User"
-          className="object-cover w-40 h-40 border-4 border-blue-500 rounded-full"
-        />
-      </div>
-      <div className="w-2/3 ml-6">
-        <h2 className="mb-4 text-2xl font-bold text-blue-700">User Profile</h2>
-        {user ? (
-          <>
-            <p><strong>Username:</strong> {user.username}</p>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Phone Number:</strong> {user.phoneNumber}</p>
-            <p><strong>Password:</strong> {user.password}</p>
-          </>
-        ) : (
-          <p>Loading user info...</p>
-        )}
+    <div className="flex items-center justify-center min-h-screen p-6 bg-gray-100 bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="w-full max-w-2xl p-10 bg-white border border-gray-300 shadow-2xl rounded-3xl">
+        <div className="flex flex-col items-center">
+          <img
+            src={profileImageSrc}
+            alt="Profile"
+            className="object-cover mb-5 border-4 border-indigo-500 rounded-full shadow-lg w-28 h-28"
+          />
+          <h2 className="mb-1 text-3xl font-bold text-gray-800">Hello, {user?.username || "User"} </h2>
+          <p className="text-sm text-gray-500">Here’s your profile information</p>
+        </div>
+
+        <div className="px-6 mt-8 space-y-4 text-lg text-gray-700">
+          <div className="flex justify-between">
+            <span className="font-semibold">Email:</span>
+            <span>{user?.email}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">Username:</span>
+            <span>{user?.username}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-semibold">Mobile Number:</span>
+            <span>{user?.phoneNumber}</span>
+          </div>
+        </div>
+
+        <button
+          className="w-full px-5 py-3 mt-8 font-medium text-white transition bg-blue-600 rounded hover:bg-blue-700"
+          onClick={() => {
+            localStorage.removeItem("user");
+            navigate("/");
+          }}
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
 };
 
-export default ProfileCard;
+export default Dashboard;

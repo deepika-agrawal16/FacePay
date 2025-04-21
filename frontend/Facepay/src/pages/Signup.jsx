@@ -11,6 +11,8 @@ import {
   faEyeSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
+import { UploadButton } from "@uploadthing/react"
+import ProfileUploader from '../components/ProfileUploader';
 
 const Signup = () => {
   const navigate = useNavigate();

@@ -1,9 +1,11 @@
 import logo from "../images/logo image.png";
-import profileImage from "../images/deepika.jpg";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightFromBracket, faBell } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   return (
     <div className="flex items-center justify-between px-6 py-3 bg-white shadow-md">
       {/* Left: Logo */}
@@ -18,7 +20,7 @@ const Navbar = () => {
 
         {/* Profile Picture */}
         <img
-          src={profileImage}
+          src="../images/waalet.jpg"
           alt="Profile"
           className="object-cover border-2 border-blue-500 rounded-full w-9 h-9"
         />
@@ -26,7 +28,8 @@ const Navbar = () => {
         {/* Logout Button */}
         <button className="flex items-center gap-2 px-3 py-1.5 text-white bg-blue-600 rounded hover:bg-blue-700 transition">
           <FontAwesomeIcon icon={faRightFromBracket} />
-          <span className="text-sm">Logout</span>
+          <span className="text-sm"
+          onClick={() => navigate('/')}>Logout</span>
         </button>
       </div>
     </div>

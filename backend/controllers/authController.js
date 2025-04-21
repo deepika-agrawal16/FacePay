@@ -3,6 +3,8 @@ import validator from 'validator';
 import { hash, compare } from 'bcryptjs';
 import transporter from '../config/mailer.js';
 import otpStore from '../utils/otpStore.js';
+import cloudinary from '../cloudinary.js';
+
 
 // =========================================
 // REGISTER - Send OTP
@@ -234,9 +236,45 @@ export const loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: 'Invalid credentials' });
 
-    res.status(200).json({ message: 'Login successful', user });
-
+    res.status(200).json({ message: 'Login successful', user: { 
+      username: user.username,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      profileImage: user.profileImage,  // Include profile image in the response
+    } });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// =========================================
+// Set profile imah
+// =========================================
+
+export const updateProfileImage = async (req, res) => {
+  
+  try {
+    const { email, image_url } = req.body; 
+
+    const cloudinary_res = await cloudinary.uploader.upload(image_url, {
+      folder:"/demo",
+  
+    });
+    
+
+    const updatedUser = await User.findOneAndUpdate(
+      { email },
+      { profileImage: cloudinary_res.url },
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, image_url: cloudinary_res.url  });
+
+  } catch (err) {
+    console.error('Update error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update profile image' });
   }
 };

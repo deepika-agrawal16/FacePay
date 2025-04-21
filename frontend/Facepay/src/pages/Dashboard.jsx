@@ -1,10 +1,10 @@
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import paymentImage from "../images/dashboard.jpg";
+import paymentImage from "../images/dashboard1.jpg";
 
 const Dashboard = () => {
   return (
-    <div className="flex h-screen bg-blue-50">
+    <div className="flex h-screen bg-blue-100">
       {/* Sidebar */}
       <Sidebar />
 
