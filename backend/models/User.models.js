@@ -1,3 +1,4 @@
+// models/User.models.js
 import { Schema, model } from 'mongoose';
 
 const UserSchema = new Schema({
@@ -9,7 +10,6 @@ const UserSchema = new Schema({
   email: {
     type: String,
     required: true,
-    
   },
   phoneNumber: {
     type: String,
@@ -18,15 +18,10 @@ const UserSchema = new Schema({
   password: {
     type: String,
     required: true,
-  }
- ,
- profileImage: {
-  type: String,
-},
- 
- 
-}, { timestamps: true}
-
-);
+  },
+  profileImage: {
+    type: String, // Store image as Base64 string
+  },
+}, { timestamps: true });
 
 export default model('User', UserSchema);
