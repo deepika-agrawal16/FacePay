@@ -9,6 +9,8 @@ import Services from './pages/Services'
 import Dashboard from './pages/Dashboard'
 import VerifyOTP from './pages/VerifyOTP'
 import ProfileCard from './components/ProfileCard'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 const App = () => {
   return (
@@ -22,6 +24,8 @@ const App = () => {
       <Route path='/dashboard' element={<Dashboard/>}/>
       <Route path='/verify' element={<VerifyOTP/>} />
       <Route path='/profile' element={<ProfileCard/>} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
     </Routes>
   )
 }
