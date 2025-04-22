@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars, faUser, faBuildingColumns, faExchangeAlt,
-  faHistory, faCog, faSignOutAlt, faCamera, faSearch,
+  faBars,
+  faUser,
+  faBuildingColumns,
+  faExchangeAlt,
+  faHistory,
+  faCog,
+  faSignOutAlt,
+  faCamera,
+  faSearch,
+  faMobileAlt,
+  faMoneyCheckAlt,
+  faChevronDown,
+  faChevronUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -12,6 +23,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [user, setUser] = useState(null);
+  const [showTransferOptions, setShowTransferOptions] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -64,7 +76,6 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    // Optional: localStorage.removeItem("profileImage");
     navigate("/");
   };
 
@@ -79,7 +90,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       {isOpen && (
-        <div className="flex flex-col  w-64 min-h-screen p-4 shadow-md bg-gradient-to-b from-blue-200 to-blue-50">
+        <div className="flex flex-col w-64 min-h-screen p-4 shadow-md bg-gradient-to-b from-blue-200 to-blue-50">
           {/* Profile */}
           <div className="relative flex flex-col items-center mb-6">
             <div className="relative">
@@ -112,9 +123,24 @@ const Sidebar = () => {
           <nav className="flex flex-col gap-4 font-medium text-gray-800">
             <SidebarItem icon={faSearch} title="Search" />
             <SidebarItem icon={faUser} title="User Details" onClick={() => navigate("/profile")} />
-            <SidebarItem icon={faBuildingColumns} title="Bank Details" />
-            <SidebarItem icon={faExchangeAlt} title="Transfer Options" />
-            <SidebarItem icon={faHistory} title="Transaction History" />
+            <SidebarItem icon={faBuildingColumns} title="Bank Details" onClick={() => navigate("/bankdetails")} />
+
+          
+            <SidebarItem
+              icon={faExchangeAlt}
+              title="Transfer Options"
+              isParent
+              onClick={() => setShowTransferOptions(!showTransferOptions)}
+              isOpen={showTransferOptions}
+            />
+            {showTransferOptions && (
+              <div className="flex flex-col gap-2 ml-8">
+                <SidebarItem icon={faMobileAlt} title="UPI Transaction" onClick={() => navigate("/upi")} />
+                <SidebarItem icon={faMoneyCheckAlt} title="Bank Transfer" onClick={() => navigate("/bank-transfer")} />
+              </div>
+            )}
+
+            <SidebarItem icon={faHistory} title="Transaction History" onClick={() => navigate("/history")} />
             <div className="h-3" />
             <SidebarItem icon={faSignOutAlt} title="Logout" onClick={handleLogout} />
             <SidebarItem icon={faCog} title="Settings" />
@@ -125,14 +151,21 @@ const Sidebar = () => {
   );
 };
 
-const SidebarItem = ({ icon, title, onClick }) => (
+
+const SidebarItem = ({ icon, title, onClick, isParent = false, isOpen = false }) => (
   <button
     onClick={onClick}
-    className="flex items-center gap-3 px-3 py-2 rounded hover:text-blue-700 hover:bg-blue-100"
+    className="flex items-center justify-between w-full px-3 py-2 rounded hover:text-blue-700 hover:bg-blue-100"
   >
-    <FontAwesomeIcon icon={icon} className="text-lg" />
-    <span>{title}</span>
+    <div className="flex items-center gap-3">
+      <FontAwesomeIcon icon={icon} className="text-lg" />
+      <span>{title}</span>
+    </div>
+    {isParent && (
+      <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} className="text-sm text-gray-500" />
+    )}
   </button>
 );
 
 export default Sidebar;
+

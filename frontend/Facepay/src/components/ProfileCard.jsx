@@ -1,7 +1,7 @@
 // Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UploadButton } from "@uploadthing/react"
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -33,19 +33,19 @@ const Dashboard = () => {
     `https://ui-avatars.com/api/?name=${user?.username || "User"}&background=0D8ABC&color=fff`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl p-10 border border-gray-300">
+    <div className="flex items-center justify-center min-h-screen p-6 bg-gray-100 bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="w-full max-w-2xl p-10 bg-white border border-gray-300 shadow-2xl rounded-3xl">
         <div className="flex flex-col items-center">
           <img
             src={profileImageSrc}
             alt="Profile"
-            className="w-28 h-28 rounded-full shadow-lg mb-5 object-cover border-4 border-indigo-500"
+            className="object-cover mb-5 border-4 border-indigo-500 rounded-full shadow-lg w-28 h-28"
           />
-          <h2 className="text-3xl font-bold text-gray-800 mb-1">Hello, {user?.username || "User"} </h2>
-          <p className="text-gray-500 text-sm">Here’s your profile information</p>
+          <h2 className="mb-1 text-3xl font-bold text-gray-800">Hello, {user?.username || "User"} </h2>
+          <p className="text-sm text-gray-500">Here’s your profile information</p>
         </div>
 
-        <div className="mt-8 space-y-4 text-gray-700 text-lg px-6">
+        <div className="px-6 mt-8 space-y-4 text-lg text-gray-700">
           <div className="flex justify-between">
             <span className="font-semibold">Email:</span>
             <span>{user?.email}</span>
@@ -61,7 +61,7 @@ const Dashboard = () => {
         </div>
 
         <button
-          className="w-full px-5 py-3 mt-8 text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 font-medium transition"
+          className="w-full px-5 py-3 mt-8 font-medium text-white transition bg-blue-600 rounded hover:bg-blue-700"
           onClick={() => {
             localStorage.removeItem("user");
             navigate("/");
