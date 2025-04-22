@@ -13,6 +13,8 @@ import BankForm from './components/BankForm'
 import BankDetails from './components/BankDetails'
 import UPITransaction from './components/UPITransaction'
 import BankTransaction from './components/BankTransaction'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 const App = () => {
   return (
@@ -30,6 +32,8 @@ const App = () => {
       <Route path='/details' element={<BankDetails />} />
       <Route path='/upi' element={<UPITransaction/>}/>
       <Route path='/bank-transfer' element={<BankTransaction />} />
+      <Route path='forgot-password' element={<ForgotPassword />} />
+      <Route path='reset-password/:token' element={<ResetPassword />} />
     </Routes>
   )
 }
