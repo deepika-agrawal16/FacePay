@@ -15,6 +15,7 @@ import UPITransaction from './components/UPITransaction'
 import BankTransaction from './components/BankTransaction'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import FaceRecognition from './pages/FaceRecognition'
 
 const App = () => {
   return (
@@ -34,7 +35,10 @@ const App = () => {
       <Route path='/bank-transfer' element={<BankTransaction />} />
       <Route path='forgot-password' element={<ForgotPassword />} />
       <Route path='reset-password/:token' element={<ResetPassword />} />
+      <Route path='/face-recognition' element={<FaceRecognition />} />
+      
     </Routes>
+   
   )
 }
 

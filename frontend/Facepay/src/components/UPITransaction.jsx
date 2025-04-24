@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import upiImage from "../images/upi.jpg"
+import FaceRecognition from "../pages/FaceRecognition";
+import { useNavigate } from "react-router-dom";
+
 const UPITransaction = () => {
   const [upiId, setUpiId] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [amount, setAmount] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert(`Transaction initiated:\nUPI ID: ${upiId}\nPhone: ${phoneNumber}\nAmount: ₹${amount}`);
+    // alert(`Transaction initiated:\nUPI ID: ${upiId}\nPhone: ${phoneNumber}\nAmount: ₹${amount}`);
     // TODO: handle actual transaction
+    navigate('/face-recognition');
+    // navigate('/face-recognition', { state: { upiId, phoneNumber, amount } });
   };
 
   return (
@@ -65,6 +71,7 @@ const UPITransaction = () => {
             <button
               type="submit"
               className="w-full py-2 text-white transition bg-blue-600 rounded-md hover:bg-blue-700"
+
             >
               Send Money
             </button>
