@@ -7,6 +7,8 @@ import otpStore from '../utils/otpStore.js';
 import cloudinary from '../cloudinary.js';
 import jwt from 'jsonwebtoken';
 import jwtauthmiddleware from '../middleware/authjwtmiddleware.js';
+import Transaction from '../models/Transactions.js';
+
 
 // =========================================
 // REGISTER - Send OTP
@@ -403,3 +405,56 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
+
+// =========================================
+// Transction History
+// =========================================
+
+
+// Add these to your existing exports
+export const createTransaction = async (req, res) => {
+  try {
+    const { receiverPhoneNumber, amount } = req.body;
+    const userId = req.user.id;
+
+    const newTxn = await Transaction.create({
+      sender: userId,
+      receiverPhoneNumber,
+      amount,
+      status: 'completed' // Assuming face recognition passes
+    });
+
+    res.status(201).json({ 
+      success: true,
+      message: 'Transaction created successfully', 
+      transaction: newTxn 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Error creating transaction',
+      error: error.message 
+    });
+  }
+};
+
+export const getUserTransactions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const transactions = await Transaction.find({ sender: userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({ 
+      success: true,
+      transactions 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Error fetching transactions',
+      error: error.message 
+    });
+  }
+};
+
