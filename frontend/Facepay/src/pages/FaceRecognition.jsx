@@ -1,102 +1,169 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const FaceRecognition = () => {
-  const videoRef = useRef();
-  const [matched, setMatched] = useState(null); // null (idle), true (matched), false (not matched)
-  const Navigate = useNavigate();
+  const videoRef = useRef(null);
+  const [matched, setMatched] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const savedImageUrl = localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user')).profileImage
-    : 'https://example.com/saved-image.jpg'; // Replace with your fallback image
+    : '';
 
-  // Load face-api.js models from public/models folder
   const loadModels = async () => {
-    const MODEL_URL = '/models';
-    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    try {
+      const MODEL_URL = '/models';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      ]);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading models:', error);
+    }
   };
 
-  // Start webcam stream
   const startVideo = () => {
     navigator.mediaDevices
-      .getUserMedia({ video: {} })
+      .getUserMedia({ video: true })
       .then((stream) => {
-        videoRef.current.srcObject = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
       })
       .catch((err) => console.error('Camera error:', err));
   };
 
-  // Compare face from webcam with saved image
+  const completeTransaction = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        'http://localhost:5000/api/auth/transactions/complete',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+    } catch (error) {
+      console.error('Error completing transaction:', error);
+    }
+  };
+
   const compareFaces = async () => {
-    const savedImg = await faceapi.fetchImage(savedImageUrl);
+    setMatched(null);
 
-    const savedDetection = await faceapi
-      .detectSingleFace(savedImg, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
+    try {
+      if (!savedImageUrl) {
+        throw new Error('No profile image found');
+      }
 
-    const liveDetection = await faceapi
-      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
+      const savedImg = await faceapi.fetchImage(savedImageUrl);
+      const savedDetection = await faceapi
+        .detectSingleFace(savedImg, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
 
-    if (savedDetection && liveDetection) {
+      if (!savedDetection) {
+        console.warn('No face detected in saved image.');
+        setMatched(false);
+        return;
+      }
+
+      const videoEl = videoRef.current;
+
+      const liveDetection = await faceapi
+        .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!liveDetection) {
+        console.warn('No face detected in live video.');
+        setMatched(false);
+        return;
+      }
+
       const distance = faceapi.euclideanDistance(
         savedDetection.descriptor,
         liveDetection.descriptor
       );
 
-      console.log('Distance:', distance);
-      setMatched(distance < 0.5); // true if match, false otherwise
+      const isMatch = distance < 0.4;
+      setMatched(isMatch);
 
-     setTimeout(() => {
-        if (distance < 0.5) {
-          Navigate('/dashboard'); // Redirect to dashboard on successful match
-        }
-      }, 2000); 
-
-      
-
-
-    } else {
-      setMatched(false); // Face not detected or not matched
+      if (isMatch) {
+        await completeTransaction();
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error during face comparison:', error);
+      setMatched(false);
     }
   };
 
   useEffect(() => {
-    loadModels().then(startVideo);
+    const init = async () => {
+      await loadModels();
+      startVideo();
+    };
+    init();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      }
+    };
   }, []);
 
   return (
     <div className="p-4 flex flex-col items-center">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        width="320"
-        height="240"
-        className="rounded shadow-md"
-      />
+      <h2 className="text-2xl font-bold mb-4">Face Verification</h2>
 
-      <button
-        onClick={compareFaces}
-        className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow"
-      >
-        Compare Faces
-      </button>
+      {loading ? (
+        <p className="text-gray-500">Loading models...</p>
+      ) : (
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            width="320"
+            height="240"
+            className="rounded shadow-md border"
+            onPlay={() => console.log('Video playing...')}
+          />
 
-      <div className="mt-4 text-lg">
-        {matched === null ? (
-          <span className="text-gray-500">Waiting for comparison...</span>
-        ) : matched ? (
-          <span className="text-green-600 font-bold">Payment Successful </span>
-        ) : (
-          <span className="text-red-600 font-bold">Face Not Matched , Try Again </span>
-        )}
-      </div>
+          <button
+            onClick={compareFaces}
+            disabled={matched !== null}
+            className={`mt-4 px-6 py-2 ${
+              matched === null ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'
+            } text-white rounded shadow`}
+          >
+            {matched === null ? 'Verify Face' : matched ? 'Verified!' : 'Try Again'}
+          </button>
+
+          <div className="mt-4 text-lg">
+            {matched === null ? (
+              <span className="text-gray-500">Please position your face in the frame</span>
+            ) : matched ? (
+              <span className="text-green-600 font-bold">
+                Payment Successful! Redirecting...
+              </span>
+            ) : (
+              <span className="text-red-600 font-bold">
+                Verification Failed. Please try again.
+              </span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
